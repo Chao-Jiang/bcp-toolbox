@@ -83,45 +83,79 @@ def compute_serial_matrix(dist_mat,method="ward"):
 
 
 #check if we have all arguments
-if len(sys.argv) < 3:
-    print ('usage: cluster_corr_mat <subjects_file> <id_roi>')
+if len(sys.argv) < 5:
+    print ('usage: cluster_corr_mat <working_dir> <subjects_file> <id_roi_l> <id_roi_r>')
 else:
 
-    directory_m1 = '/media/neuroimaging/TOSHIBA/SWBOX_probtrackx/M1/'
+    # get directories
+    working_dir = str(sys.argv[1])
 
-    subjects_filepath = str(sys.argv[1])
+    subjects_filepath = str(sys.argv[2])
     with open(subjects_filepath, 'r') as subjects:
         mylist = subjects.read().splitlines()
         for line in mylist:
             # get subject name from file
-            subject = line+'_M1'
+            subject = line
             print (subject)
 
-            # get id of ROI and file with distance matrix
-            idroi=str(sys.argv[2])
-            dist_mat_name='roi'+idroi+'_cc_mat'
-            dist_mat_filepath = os.path.join(directory_m1, subject, dist_mat_name)
-            dist_mat = np.loadtxt(dist_mat_filepath)
+            # get id of ROI and correlation matrix
+            # left
+            idroi_l=str(sys.argv[3])
+            cc_mat_l_name='roi'+idroi_l+'_cc_mat'
+            cc_mat_l_filepath = os.path.join(working_dir, subject, cc_mat_l_name)
+            cc_mat_l = np.loadtxt(cc_mat_l_filepath)
 
-	    # run hierarchical clustering
-	    ordered_dist_mat, res_order, res_linkage = compute_serial_matrix(dist_mat,'average')
-	    
-	    # save ordered distance matrix
-	    output_name='roi'+idroi+'_ordered_cc_mat'
-            output_mat_file = os.path.join(directory_m1, subject, output_name)
-	    np.savetxt(output_mat_file, ordered_dist_mat)
+            # right
+            idroi_r=str(sys.argv[4])
+            cc_mat_r_name='roi'+idroi_r+'_cc_mat'
+            cc_mat_r_filepath = os.path.join(working_dir, subject, cc_mat_r_name)
+            cc_mat_r = np.loadtxt(cc_mat_r_filepath)
 
-	    # save clustering results (merges order and distances)
-	    results_name='roi'+idroi+'_results_linkage'
-	    results_file = os.path.join(directory_m1, subject, results_name)
-	    np.savetxt(results_file, res_linkage)
+            # run hierarchical clustering
+            # left
+            ordered_dist_l_mat, res_order_l, res_linkage_l = compute_serial_matrix(cc_mat_l,'average')
+            # right
+            ordered_dist_r_mat, res_order_r, res_linkage_r = compute_serial_matrix(cc_mat_r,'average')
 
-	    # save image of dendrogram
-	    plt.figure(figsize=(25,10))
-	    plt.title('Hierarchical Clustering Dendrogram')
-	    plt.xlabel('voxel index')
-	    plt.ylabel('distance')
-	    dendrogram(res_linkage,leaf_rotation=90.,leaf_font_size=8.,)
-	    dendrogram_name = 'roi'+idroi+'dendrogram.png'
-	    dendrogram_file = os.path.join(directory_m1, subject, dendrogram_name)
-	    plt.savefig(dendrogram_file)
+            # save ordered correlation matrix
+            # left
+            output_l_name='roi'+idroi_l+'_ordered_cc_mat'
+            output_mat_l_file = os.path.join(working_dir, subject, output_l_name)
+            np.savetxt(output_mat_l_file, ordered_dist_l_mat)
+
+            # right
+            output_r_name='roi'+idroi_r+'_ordered_cc_mat'
+            output_mat_r_file = os.path.join(working_dir, subject, output_r_name)
+            np.savetxt(output_mat_r_file, ordered_dist_r_mat)
+
+            # save clustering results (merges order and distances)
+            # left
+            results_l_name='roi'+idroi_l+'_results_linkage'
+            results_l_file = os.path.join(working_dir, subject, results_l_name)
+            np.savetxt(results_l_file, res_linkage_l)
+
+            #right
+            results_r_name='roi'+idroi_r+'_results_linkage'
+            results_r_file = os.path.join(working_dir, subject, results_r_name)
+            np.savetxt(results_r_file, res_linkage_r)
+
+            # save image of dendrogram
+            # left
+            plt.figure(figsize=(25,10))
+            plt.title('Hierarchical Clustering Dendrogram')
+            plt.xlabel('voxel index')
+            plt.ylabel('distance')
+            dendrogram(res_linkage_l,leaf_rotation=90.,leaf_font_size=8.,)
+            dendrogram_l_name = 'roi'+idroi_l+'dendrogram.png'
+            dendrogram_l_file = os.path.join(working_dir, subject, dendrogram_l_name)
+            plt.savefig(dendrogram_l_file)
+
+            # right
+            plt.figure(figsize=(25,10))
+            plt.title('Hierarchical Clustering Dendrogram')
+            plt.xlabel('voxel index')
+            plt.ylabel('distance')
+            dendrogram(res_linkage_r,leaf_rotation=90.,leaf_font_size=8.,)
+            dendrogram_r_name = 'roi'+idroi_r+'dendrogram.png'
+            dendrogram_r_file = os.path.join(working_dir, subject, dendrogram_r_name)
+            plt.savefig(dendrogram_r_file)

@@ -30,8 +30,8 @@ def file_len(fname):
 def get_mat_lines(directory, ids_roi, fdt_mat_file, first_line, last_line, output_file):
 
     rows = []
+    # get lines of whole sparse matrix that correspond to the ROI
     with open(fdt_mat_file, 'r') as sparse_mat:
-         #for line in sparse_mat:
          for line in itertools.islice(sparse_mat, first_line, last_line):
              l = line.split()
              v_id1 = int(l[0])
@@ -39,106 +39,158 @@ def get_mat_lines(directory, ids_roi, fdt_mat_file, first_line, last_line, outpu
              value = int(l[2])
              if v_id1 in ids_roi:
                  rows.append(line)
-                 #with open(output_file, 'w') as out_file:
-                 #    out_file.write(line)
-                 #print(v_id1)
              elif v_id2 in ids_roi:
                  rows.append(line)
-                 #with open(output_file, 'w') as out_file:
-                 #    out_file.write(line)
-                 #print(v_id2)
 
-    #print coords
-    #filename = 'sparse_mat_roi_40.txt'
-    #out_file = os.path.join(directory, output_file)
-    #np.savetxt(output_file,rows)
-    #print filename
-
-    #with open(output_file, 'wb') as fp:
-    #    pickle.dump(rows, fp)
     with open(output_file, 'w') as of:
         of.writelines(rows)
 
 # check if we have all the arguments
-if len(sys.argv) < 3:
-    print ('usage: get_connectivity_mat <subjects_file> <id_roi>')
+if len(sys.argv) < 6:
+    print ('usage: get_connectivity_mat <working_dir> <data_dir> <subjects_file> <id_roi_l> <id_roi_r>')
 else:
-    directory_m1 = '/media/neuroimaging/TOSHIBA/SWBOX_probtrackx/M1/'
+    # get directories
+    working_dir = str(sys.argv[1])
+    data_dir = str(sys.argv[2])
  
     # open subjects file
-    subjects_filepath = str(sys.argv[1])
+    subjects_filepath = str(sys.argv[3])
     with open(subjects_filepath, 'r') as subjects:
         mylist = subjects.read().splitlines()
         for line in mylist:
             # get subject name from file
-            subject = line+'_M1'
-            print (subject)
+            subject = line
+            #print (subject)
             
-            # get id of ROI and file with voxel ids 
-            idroi=str(sys.argv[2])
-            id_roi_name='ids_roi'+idroi+'.txt'
-            ids_roi_filepath = os.path.join(directory_m1, subject,id_roi_name)
-            ids_roi = loadtxt(ids_roi_filepath)
-            #print ids_roi_filepath
+            # get ids of ROI and file with voxel ids 
+            # left
+            idroi_l=str(sys.argv[4])
+            id_roi_l_name='ids_roi'+idroi_l+'.txt'
+            ids_roi_l_filepath = os.path.join(working_dir, subject,id_roi_l_name)
+            ids_roi_l = loadtxt(ids_roi_l_filepath)
+
+            # right
+            idroi_r=str(sys.argv[5])
+            id_roi_r_name='ids_roi'+idroi_r+'.txt'
+            ids_roi_r_filepath = os.path.join(working_dir, subject,id_roi_r_name)
+            ids_roi_r = loadtxt(ids_roi_r_filepath)
             
             # get sparse voxel-wise connectivity matrix
-            fdt_mat_filepath = os.path.join(directory_m1, subject,'fdt_matrix1.dot')
-            #print fdt_mat_filepath
+            fdt_mat_filepath = os.path.join(data_dir, subject,'fdt_matrix1.dot')
             
             # get number of lines in sparse matrix and compute increment to parallel computing
             length = file_len(fdt_mat_filepath)
-            #print length
             increment = int(length / 6)
-            #print increment
             
-            # get ouptut file name
-            output_file = os.path.join(directory_m1, subject, 'roi'+idroi+'_part')
-            #print output_file
+            # get ouptut file names
+            output_file_l = os.path.join(working_dir, subject, 'roi'+idroi_l+'_part')
+            output_file_r = os.path.join(working_dir, subject, 'roi'+idroi_r+'_part')
  
             # create the multiple processes to run in parallel
-            Pros = []
+            # left
+            Pros_l = []
             
             start_time = time.time()
 
-            p = multiprocessing.Process(target=get_mat_lines, args=(directory_m1, ids_roi, fdt_mat_filepath, 0, increment, output_file+'1'))
-            Pros.append(p)
+            p = multiprocessing.Process(target=get_mat_lines, args=(data_dir, ids_roi_l, fdt_mat_filepath, 0, increment, output_file_l+'1'))
+            Pros_l.append(p)
             p.start()
 
-            p = multiprocessing.Process(target=get_mat_lines, args=(directory_m1, ids_roi, fdt_mat_filepath, increment+1, increment*2, output_file+'2'))
-            Pros.append(p)
+            p = multiprocessing.Process(target=get_mat_lines, args=(data_dir, ids_roi_l, fdt_mat_filepath, increment+1, increment*2, output_file_l+'2'))
+            Pros_l.append(p)
             p.start()
             
-            p = multiprocessing.Process(target=get_mat_lines, args=(directory_m1, ids_roi, fdt_mat_filepath, increment*2+1, increment*3, output_file+'3'))
-            Pros.append(p)
+            p = multiprocessing.Process(target=get_mat_lines, args=(data_dir, ids_roi_l, fdt_mat_filepath, increment*2+1, increment*3, output_file_l+'3'))
+            Pros_l.append(p)
             p.start()
             
-            p = multiprocessing.Process(target=get_mat_lines, args=(directory_m1, ids_roi, fdt_mat_filepath, increment*3+1, increment*4, output_file+'4'))
-            Pros.append(p)
+            p = multiprocessing.Process(target=get_mat_lines, args=(data_dir, ids_roi_l, fdt_mat_filepath, increment*3+1, increment*4, output_file_l+'4'))
+            Pros_l.append(p)
             p.start()
             
-            p = multiprocessing.Process(target=get_mat_lines, args=(directory_m1, ids_roi, fdt_mat_filepath, increment*4+1, increment*5, output_file+'5'))
-            Pros.append(p)
+            p = multiprocessing.Process(target=get_mat_lines, args=(data_dir, ids_roi_l, fdt_mat_filepath, increment*4+1, increment*5, output_file_l+'5'))
+            Pros_l.append(p)
             p.start()
             
-            p = multiprocessing.Process(target=get_mat_lines, args=(directory_m1, ids_roi, fdt_mat_filepath, increment*5+1, length, output_file+'6'))
-            Pros.append(p)
+            p = multiprocessing.Process(target=get_mat_lines, args=(data_dir, ids_roi_l, fdt_mat_filepath, increment*5+1, length, output_file_l+'6'))
+            Pros_l.append(p)
             p.start()
-        # block until all the threads finish (i.e. block until all function_x calls finish)    
-            for t in Pros:
+            # block until all the threads finish (i.e. block until all function_x calls finish)    
+            for t in Pros_l:
+                t.join()
+            
+            print("--- %s seconds ---" % (time.time() - start_time))
+
+            # right
+            Pros_r = []
+            
+            start_time = time.time()
+
+            p = multiprocessing.Process(target=get_mat_lines, args=(data_dir, ids_roi_r, fdt_mat_filepath, 0, increment, output_file_r+'1'))
+            Pros_r.append(p)
+            p.start()
+
+            p = multiprocessing.Process(target=get_mat_lines, args=(data_dir, ids_roi_r, fdt_mat_filepath, increment+1, increment*2, output_file_r+'2'))
+            Pros_r.append(p)
+            p.start()
+            
+            p = multiprocessing.Process(target=get_mat_lines, args=(data_dir, ids_roi_r, fdt_mat_filepath, increment*2+1, increment*3, output_file_r+'3'))
+            Pros_r.append(p)
+            p.start()
+            
+            p = multiprocessing.Process(target=get_mat_lines, args=(data_dir, ids_roi_r, fdt_mat_filepath, increment*3+1, increment*4, output_file_r+'4'))
+            Pros_r.append(p)
+            p.start()
+            
+            p = multiprocessing.Process(target=get_mat_lines, args=(data_dir, ids_roi_r, fdt_mat_filepath, increment*4+1, increment*5, output_file_r+'5'))
+            Pros_r.append(p)
+            p.start()
+            
+            p = multiprocessing.Process(target=get_mat_lines, args=(data_dir, ids_roi_r, fdt_mat_filepath, increment*5+1, length, output_file_r+'6'))
+            Pros_r.append(p)
+            p.start()
+            # block until all the threads finish (i.e. block until all function_x calls finish)    
+            for t in Pros_r:
                 t.join()
             
             print("--- %s seconds ---" % (time.time() - start_time))
 
             # concatenate all the files created in a single sparse matrix
-            listfiles = []
-            listfiles.append(output_file+'1')   
-            listfiles.append(output_file+'2')   
-            listfiles.append(output_file+'3')   
-            listfiles.append(output_file+'4')   
-            listfiles.append(output_file+'5')   
-            listfiles.append(output_file+'6')   
+            # left 
+            listfiles_l = []
+            listfiles_l.append(output_file_l+'1')   
+            listfiles_l.append(output_file_l+'2')   
+            listfiles_l.append(output_file_l+'3')   
+            listfiles_l.append(output_file_l+'4')   
+            listfiles_l.append(output_file_l+'5')   
+            listfiles_l.append(output_file_l+'6')   
             
-            out_sparse_file = os.path.join(directory_m1, subject, 'roi'+idroi+'_sparse_mat')
-            concatenate_files(listfiles, out_sparse_file)
+            out_sparse_file_l = os.path.join(working_dir, subject, 'roi'+idroi_l+'_sparse_mat')
+            concatenate_files(listfiles_l, out_sparse_file_l)
 
+            # delete part files
+            for file in listfiles_l:
+                try:
+                    os.remove(file)
+                except OSError, e:  ## if failed, report it back to the user ##
+                    print ("Error: %s - %s." % (e.filename,e.strerror))
+
+            # right 
+            listfiles_r = []
+            listfiles_r.append(output_file_r+'1')   
+            listfiles_r.append(output_file_r+'2')   
+            listfiles_r.append(output_file_r+'3')   
+            listfiles_r.append(output_file_r+'4')   
+            listfiles_r.append(output_file_r+'5')   
+            listfiles_r.append(output_file_r+'6')   
+            
+            out_sparse_file_r = os.path.join(working_dir, subject, 'roi'+idroi_r+'_sparse_mat')
+            concatenate_files(listfiles_r, out_sparse_file_r)
+
+            # delete part files
+            for file in listfiles_r:
+                try:
+                    os.remove(file)
+                except OSError, e:  ## if failed, report it back to the user ##
+                    print ("Error: %s - %s." % (e.filename,e.strerror))
 
