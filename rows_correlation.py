@@ -44,7 +44,8 @@ def compute_cc_mat(ids_roi, sparse_mat, length, output_mat):
         v1 = arrays.get(key)
         for key2 in arrays:
             v2 = arrays.get(key2)
-            correlation_mat[key][key2]=1 - np.corrcoef(v1[0],v2[0])[0][1]
+            #correlation_mat[key][key2]=1 - abs(np.corrcoef(v1[0],v2[0])[0][1])
+            correlation_mat[key][key2] = np.corrcoef(v1[0],v2[0])[0][1]
     print ('Correlation matrix created!')
     np.savetxt(output_mat, correlation_mat)
   
