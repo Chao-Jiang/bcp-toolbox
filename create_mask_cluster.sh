@@ -40,11 +40,15 @@ do
 			cluster_value=$(echo $coords_l | awk '{print $4}')
 
 			# create mask for each coordinate
-			fslmaths "$data_dir"/"$subject"/"$subject"_diff_b0_bet.nii.gz -mul 0 -add $cluster_value -roi $x 1 $y 1 $z 1 0 1 "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz -odt float
+			#fslmaths "$data_dir"/"$subject"/"$subject"_diff_b0_bet.nii.gz -mul 0 -add $cluster_value -roi $x 1 $y 1 $z 1 0 1 "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz -odt float
 			if (( $(echo "$n" == "0" |bc -l) ));then 
-				string_add="$string_add "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz"
+				#string_add="$string_add "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz"
+				fslmaths "$data_dir"/"$subject"/"$subject"_diff_b0_bet.nii.gz -mul 0 -add $cluster_value -roi $x 1 $y 1 $z 1 0 1 "$working_dir"/"$subject"/k"$i"_roi"$roi_id_l"_cluster_mask.nii.gz -odt float
 			else
-				string_add="$string_add -add "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz"
+				#string_add="$string_add -add "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz"
+				fslmaths "$data_dir"/"$subject"/"$subject"_diff_b0_bet.nii.gz -mul 0 -add $cluster_value -roi $x 1 $y 1 $z 1 0 1 "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz -odt float
+				fslmaths "$working_dir"/"$subject"/k"$i"_roi"$roi_id_l"_cluster_mask.nii.gz  -add "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz "$working_dir"/"$subject"/k"$i"_roi"$roi_id_l"_cluster_mask.nii.gz 
+				rm -f "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz
 			fi
 			n=$((n+1))
 
@@ -54,8 +58,8 @@ do
 
 		# add all masks and remove old files
 		#echo "Creating mask for left ROI ..."
-		fslmaths $string_add "$working_dir"/"$subject"/k"$i"_roi"$roi_id_l"_cluster_mask.nii.gz 
-		rm -f "$working_dir"/"$subject"/k"$i"_cluster_*
+		#fslmaths $string_add "$working_dir"/"$subject"/k"$i"_roi"$roi_id_l"_cluster_mask.nii.gz 
+		#rm -f "$working_dir"/"$subject"/k"$i"_cluster_*
 		#echo "Finished creating mask"
 
 		# register to MNI
@@ -78,11 +82,15 @@ do
 			cluster_value=$(echo $coords_r | awk '{print $4}')
 
 			# create mask for each coordinate
-			fslmaths "$data_dir"/"$subject"/"$subject"_diff_b0_bet.nii.gz -mul 0 -add $cluster_value -roi $x 1 $y 1 $z 1 0 1 "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz -odt float
+			#fslmaths "$data_dir"/"$subject"/"$subject"_diff_b0_bet.nii.gz -mul 0 -add $cluster_value -roi $x 1 $y 1 $z 1 0 1 "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz -odt float
 			if (( $(echo "$n" == "0" |bc -l) ));then 
-				string_add="$string_add "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz"
+				#string_add="$string_add "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz"
+				fslmaths "$data_dir"/"$subject"/"$subject"_diff_b0_bet.nii.gz -mul 0 -add $cluster_value -roi $x 1 $y 1 $z 1 0 1 "$working_dir"/"$subject"/k"$i"_roi"$roi_id_r"_cluster_mask.nii.gz  -odt float
 			else
-				string_add="$string_add -add "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz"
+				#string_add="$string_add -add "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz"
+				fslmaths "$data_dir"/"$subject"/"$subject"_diff_b0_bet.nii.gz -mul 0 -add $cluster_value -roi $x 1 $y 1 $z 1 0 1 "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz -odt float
+				fslmaths "$working_dir"/"$subject"/k"$i"_roi"$roi_id_r"_cluster_mask.nii.gz  -add "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz "$working_dir"/"$subject"/k"$i"_roi"$roi_id_r"_cluster_mask.nii.gz
+				rm -f "$working_dir"/"$subject"/k"$i"_cluster_"$x"_"$y"_"$z".nii.gz
 			fi
 			n=$((n+1))
 
@@ -92,8 +100,8 @@ do
 
 		# add all masks and remove old files
 		#echo "Creating mask for right ROI ..."
-		fslmaths $string_add "$working_dir"/"$subject"/k"$i"_roi"$roi_id_r"_cluster_mask.nii.gz 
-		rm -f "$working_dir"/"$subject"/k"$i"_cluster_*
+		#fslmaths $string_add "$working_dir"/"$subject"/k"$i"_roi"$roi_id_r"_cluster_mask.nii.gz 
+		#rm -f "$working_dir"/"$subject"/k"$i"_cluster_*
 		#echo "Finished creating mask"
 
 		# register to MNI

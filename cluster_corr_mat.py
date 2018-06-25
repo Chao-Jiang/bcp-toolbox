@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import pdist
 from scipy.cluster.hierarchy import cophenet
+import scipy.io as sio
 
 def fancy_dendrogram(*args, **kwargs):
     max_d = kwargs.pop('max_d', None)
@@ -101,15 +102,29 @@ else:
             # get id of ROI and correlation matrix
             # left
             idroi_l=str(sys.argv[3])
-            cc_mat_l_name='roi'+idroi_l+'_cc_mat'
+            cc_mat_l_name='roi'+idroi_l+'_cc_mat.mat'
             cc_mat_l_filepath = os.path.join(working_dir, subject, cc_mat_l_name)
-            cc_mat_l = np.loadtxt(cc_mat_l_filepath)
+
+            # load .mat file and convert to numpy array
+            mat_contents_l = sio.loadmat(cc_mat_l_filepath)
+            mat_l = mat_contents_l['cc_mat']
+            cc_mat_l = np.array(mat_l)
+            cc_mat_l[np.isnan(cc_mat_l)] = 0
+
+            #cc_mat_l = np.loadtxt(cc_mat_l_filepath)
 
             # right
             idroi_r=str(sys.argv[4])
-            cc_mat_r_name='roi'+idroi_r+'_cc_mat'
+            cc_mat_r_name='roi'+idroi_r+'_cc_mat.mat'
             cc_mat_r_filepath = os.path.join(working_dir, subject, cc_mat_r_name)
-            cc_mat_r = np.loadtxt(cc_mat_r_filepath)
+
+            # load .mat file and convert to numpy array
+            mat_contents_r = sio.loadmat(cc_mat_r_filepath)
+            mat_r = mat_contents_r['cc_mat']
+            cc_mat_r = np.array(mat_r)
+            cc_mat_r[np.isnan(cc_mat_r)] = 0
+
+            #cc_mat_r = np.loadtxt(cc_mat_r_filepath)
 
             # run hierarchical clustering
             # left
